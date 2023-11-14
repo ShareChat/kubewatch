@@ -204,7 +204,6 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			0, //Skip resync
 			cache.Indexers{},
 		)
-
 		c := newResourceController(kubeClient, eventHandler, informer, objName(apps_v1.DaemonSet{}), APPS_V1)
 		stopCh := make(chan struct{})
 		defer close(stopCh)
@@ -577,6 +576,7 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 			newEvent.resourceType = resourceType
 			newEvent.apiVersion = apiVersion
 			newEvent.obj, ok = new.(runtime.Object)
+
 			if !ok {
 				logrus.WithField("pkg", "kubewatch-"+resourceType).Errorf("cannot convert to runtime.Object for update on %v", new)
 			}
@@ -607,13 +607,14 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 		},
 	})
 
-	return &Controller{
+	controler := &Controller{
 		logger:       logrus.WithField("pkg", "kubewatch-"+resourceType),
 		clientset:    client,
 		informer:     informer,
 		queue:        queue,
 		eventHandler: eventHandler,
 	}
+	return controler
 }
 
 // Run starts the kubewatch controller
@@ -632,7 +633,6 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 	}
 
 	c.logger.Info("Kubewatch controller synced and ready")
-
 	wait.Until(c.runWorker, time.Second, stopCh)
 }
 
@@ -689,10 +689,10 @@ func (c *Controller) processItem(newEvent Event) error {
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", newEvent.key, err)
 	}
+
 	// get object's metedata
 	objectMeta := utils.GetObjectMetaData(obj)
 
-	// hold status type for default critical alerts
 	var status string
 
 	// namespace retrived from event key incase namespace value is empty

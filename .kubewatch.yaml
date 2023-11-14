@@ -1,0 +1,18 @@
+handler:
+  slack:
+    token: ""
+    channel: ""
+  hipchat:
+    token: ""
+    room: ""
+    url: ""
+  mattermost:
+    channel: ""
+    url: ""
+    username: ""
+  flock:
+    url: ""
+  webhook:
+    url: "http://172.22.5.173:8000"
+resource:
+  deployment: true

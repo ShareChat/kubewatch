@@ -20,17 +20,21 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	apps_v1 "k8s.io/api/apps/v1"
+
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
+	"github.com/bitnami-labs/kubewatch/pkg/utils"
 )
 
 var webhookErrMsg = `
@@ -54,18 +58,54 @@ type Webhook struct {
 
 // WebhookMessage for messages
 type WebhookMessage struct {
-	EventMeta EventMeta `json:"eventmeta"`
-	Text      string    `json:"text"`
-	Time      time.Time `json:"time"`
+	Type        string            `json: type`
+	Name        string            `json: name`
+	Summary     string            `json : summary`
+	Pod         string            `json: pod`
+	Entity      string            `json: entity`
+	Env         string            `json: env`
+	ServiceName string            `json: service_name`
+	Action      string            `json: action`
+	CreatedAt   time.Time         `json: created_at`
+	ActionBy    string            `json: action_by`
+	RiskLevel   string            `json: risk_level`
+	Metadata    map[string]string `json: metadata`
+	Data        objectData        `json: data`
 }
 
+// type objectData struct {
+// 	CurrentConfig runtime.Object `json: current_config`
+// 	OldConfig     runtime.Object `json: old_config`
+// }
+
+//expected structure
+// {
+//type:  e.Kind
+//name: e.Name
+//Summary: e.Message()
+//pod: e.Obj.Pod
+//entity: e.Obj.Entity
+//env: e.Obj.Env
+//service_name: e.Obj.Service
+//action: e.Obj.Action
+//created_at: time.Now()
+//action_by: e.Obj.ActionBy
+//risk_level: e.Obj.RiskLevel
+//metadata: {
+//}
+//data: {
+//current_config: {},
+//new_config: {}
+//}
+//}
+
 // EventMeta containes the meta data about the event occurred
-type EventMeta struct {
-	Kind      string `json:"kind"`
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-	Reason    string `json:"reason"`
-}
+// type EventMeta struct {
+// 	Kind      string `json:"kind"`
+// 	Name      string `json:"name"`
+// 	Namespace string `json:"namespace"`
+// 	Reason    string `json:"reason"`
+// }
 
 // Init prepares Webhook configuration
 func (m *Webhook) Init(c *config.Config) error {
@@ -106,14 +146,24 @@ func (m *Webhook) Init(c *config.Config) error {
 // Handle handles an event.
 func (m *Webhook) Handle(e event.Event) {
 	webhookMessage := prepareWebhookMessage(e, m)
+	if objectGenerationChangeCheck(e) {
+		err := postMessage(m.Url, webhookMessage)
+		if err != nil {
+			logrus.Printf("%s\n", err)
+			return
+		}
 
-	err := postMessage(m.Url, webhookMessage)
-	if err != nil {
-		logrus.Printf("%s\n", err)
-		return
+		logrus.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
 	}
+}
 
-	logrus.Printf("Message successfully sent to %s at %s ", m.Url, time.Now())
+func objectGenerationChangeCheck(e event.Event) bool {
+	object := utils.GetObjectMetaData(e.Obj)
+	oldObject := utils.GetObjectMetaData(e.OldObj)
+	if object.GetGeneration() != oldObject.GetGeneration() {
+		return true
+	}
+	return false
 }
 
 func checkMissingWebhookVars(s *Webhook) error {
@@ -125,15 +175,118 @@ func checkMissingWebhookVars(s *Webhook) error {
 }
 
 func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
+
+	kind := strings.ToLower(e.Kind)
+	pod := extractLabels(e, "pod")
+	entity := extractLabels(e, "entity")
+	env := extractLabels(e, "environment")
+	serviceName := extractLabels(e, "service")
+	actionBy := getActionBy(kind)
+	riskLevel := getRiskLevel(kind)
+	data := extractObjectDetails(e)
+
 	return &WebhookMessage{
-		EventMeta: EventMeta{
-			Kind:      e.Kind,
-			Name:      e.Name,
-			Namespace: e.Namespace,
-			Reason:    e.Reason,
-		},
-		Text: e.Message(),
-		Time: time.Now(),
+		Type:        kind,
+		Name:        e.Name,
+		Summary:     e.Message(),
+		Pod:         pod,
+		Entity:      entity,
+		Env:         env,
+		ServiceName: serviceName,
+		Action:      strings.ToLower(e.Reason),
+		CreatedAt:   time.Now(),
+		ActionBy:    actionBy,
+		RiskLevel:   riskLevel,
+		Metadata:    map[string]string{},
+		Data:        data,
+	}
+}
+
+type objectData struct {
+	CurrentConfigName      string      `json: current_config_name`
+	CurrentConfigNamespace string      `json: current_config_namespace`
+	CurrentConfigSpec      interface{} `json: current_config_spec`
+	OldConfigName          string      `json: old_config_name`
+	OldConfigNamespace     string      `json: old_config_namespace`
+	OldConfigSpec          interface{} `json: old_config_spec`
+}
+
+func extractObjectDetails(e event.Event) objectData {
+	var data objectData
+
+	object, ok := e.Obj.(*apps_v1.Deployment)
+	if !ok {
+		fmt.Println("Error casting oldConfig to Deployment type")
+		return data
+	}
+	oldObj := e.OldObj.(*apps_v1.Deployment)
+	if !ok {
+		fmt.Println("Error casting currentConfig to Deployment type")
+		return data
+	}
+
+	data.CurrentConfigName = object.GetName()
+	data.CurrentConfigNamespace = object.GetNamespace()
+	data.CurrentConfigSpec = object.Spec
+
+	data.OldConfigName = oldObj.GetName()
+	data.OldConfigNamespace = oldObj.GetNamespace()
+	data.OldConfigSpec = oldObj.Spec
+
+	return data
+}
+
+func extractLabels(e event.Event, label string) string {
+	eventLabels := utils.GetObjectMetaData(e.Obj)
+	if eventLabels.Labels != nil {
+		return eventLabels.Labels[label]
+	}
+	return ""
+}
+
+func getActionBy(kind string) string {
+	switch kind {
+	case "deployment":
+		return "deployment-controller"
+	case "service":
+		return "service-controller"
+	case "configmap":
+		return "configmap-controller"
+	case "secret":
+		return "secret-controller"
+	case "namespace":
+		return "namespace-controller"
+	case "deamonset":
+		return "deamonset-controller"
+	case "statefulset":
+		return "statefulset-controller"
+	case "ingress":
+		return "ingress-controller"
+	default:
+		return "kubernetes-controller"
+	}
+}
+
+func getRiskLevel(kind string) string {
+	switch kind {
+	case "deployment":
+		return "medium"
+	case "service":
+		return "high"
+	case "configmap":
+		return "medium"
+	case "secret":
+		return "medium"
+	case "namespace":
+		return "high"
+	case "deamonset":
+		return "low"
+	case "statefulset":
+		return "high"
+	case "ingress":
+		return "high"
+	default:
+		return "medium"
 	}
 }
 
@@ -142,7 +295,9 @@ func postMessage(url string, webhookMessage *WebhookMessage) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("*************")
+	fmt.Println(bytes.NewBuffer(message))
+	fmt.Println("*************")
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(message))
 	if err != nil {
 		return err
