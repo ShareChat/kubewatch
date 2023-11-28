@@ -37,6 +37,12 @@ import (
 	"github.com/bitnami-labs/kubewatch/pkg/utils"
 )
 
+const (
+	RiskLevelMedium = "medium"
+	RiskLevelHigh   = "high"
+	RiskLevelLow    = "low"
+)
+
 var webhookErrMsg = `
 %s
 
@@ -56,8 +62,8 @@ type Webhook struct {
 	Url string
 }
 
-// WebhookMessage for messages
-type WebhookMessage struct {
+// Custom webhook message and only will be enabled when the custom_webhook_output flag is set to true
+type CustomWebhookMessage struct {
 	Type        string            `json: type`
 	Name        string            `json: name`
 	Summary     string            `json : summary`
@@ -73,39 +79,19 @@ type WebhookMessage struct {
 	Data        objectData        `json: data`
 }
 
-// type objectData struct {
-// 	CurrentConfig runtime.Object `json: current_config`
-// 	OldConfig     runtime.Object `json: old_config`
-// }
-
-//expected structure
-// {
-//type:  e.Kind
-//name: e.Name
-//Summary: e.Message()
-//pod: e.Obj.Pod
-//entity: e.Obj.Entity
-//env: e.Obj.Env
-//service_name: e.Obj.Service
-//action: e.Obj.Action
-//created_at: time.Now()
-//action_by: e.Obj.ActionBy
-//risk_level: e.Obj.RiskLevel
-//metadata: {
-//}
-//data: {
-//current_config: {},
-//new_config: {}
-//}
-//}
+type WebhookMessage struct {
+	EventMeta EventMeta `json:"eventmeta"`
+	Text      string    `json:"text"`
+	Time      time.Time `json:"time"`
+}
 
 // EventMeta containes the meta data about the event occurred
-// type EventMeta struct {
-// 	Kind      string `json:"kind"`
-// 	Name      string `json:"name"`
-// 	Namespace string `json:"namespace"`
-// 	Reason    string `json:"reason"`
-// }
+type EventMeta struct {
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+	Reason    string `json:"reason"`
+}
 
 // Init prepares Webhook configuration
 func (m *Webhook) Init(c *config.Config) error {
@@ -160,21 +146,17 @@ func (m *Webhook) Handle(e event.Event) {
 func objectGenerationChangeCheck(e event.Event) bool {
 	object := utils.GetObjectMetaData(e.Obj)
 	oldObject := utils.GetObjectMetaData(e.OldObj)
-	if object.GetGeneration() != oldObject.GetGeneration() {
-		return true
-	}
-	return false
+	return object.Generation != oldObject.Generation
 }
 
 func checkMissingWebhookVars(s *Webhook) error {
 	if s.Url == "" {
 		return fmt.Errorf(webhookErrMsg, "Missing Webhook url")
 	}
-
 	return nil
 }
 
-func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
+func prepareWebhookMessage(e event.Event, m *Webhook) *CustomWebhookMessage {
 
 	kind := strings.ToLower(e.Kind)
 	pod := extractLabels(e, "pod")
@@ -185,7 +167,7 @@ func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
 	riskLevel := getRiskLevel(kind)
 	data := extractObjectDetails(e)
 
-	return &WebhookMessage{
+	return &CustomWebhookMessage{
 		Type:        kind,
 		Name:        e.Name,
 		Summary:     e.Message(),
@@ -198,7 +180,7 @@ func prepareWebhookMessage(e event.Event, m *Webhook) *WebhookMessage {
 		ActionBy:    actionBy,
 		RiskLevel:   riskLevel,
 		Metadata:    map[string]string{},
-		Data:        data,
+		Data:        *data,
 	}
 }
 
@@ -211,18 +193,18 @@ type objectData struct {
 	OldConfigSpec          interface{} `json: old_config_spec`
 }
 
-func extractObjectDetails(e event.Event) objectData {
+func extractObjectDetails(e event.Event) *objectData {
 	var data objectData
 
 	object, ok := e.Obj.(*apps_v1.Deployment)
 	if !ok {
 		fmt.Println("Error casting oldConfig to Deployment type")
-		return data
+		return &data
 	}
 	oldObj := e.OldObj.(*apps_v1.Deployment)
 	if !ok {
 		fmt.Println("Error casting currentConfig to Deployment type")
-		return data
+		return &data
 	}
 
 	data.CurrentConfigName = object.GetName()
@@ -233,7 +215,7 @@ func extractObjectDetails(e event.Event) objectData {
 	data.OldConfigNamespace = oldObj.GetNamespace()
 	data.OldConfigSpec = oldObj.Spec
 
-	return data
+	return &data
 }
 
 func extractLabels(e event.Event, label string) string {
@@ -270,27 +252,27 @@ func getActionBy(kind string) string {
 func getRiskLevel(kind string) string {
 	switch kind {
 	case "deployment":
-		return "medium"
+		return RiskLevelMedium
 	case "service":
-		return "high"
+		return RiskLevelHigh
 	case "configmap":
-		return "medium"
+		return RiskLevelMedium
 	case "secret":
-		return "medium"
+		return RiskLevelMedium
 	case "namespace":
-		return "high"
+		return RiskLevelHigh
 	case "deamonset":
-		return "low"
+		return RiskLevelLow
 	case "statefulset":
-		return "high"
+		return RiskLevelHigh
 	case "ingress":
-		return "high"
+		return RiskLevelHigh
 	default:
-		return "medium"
+		return RiskLevelMedium
 	}
 }
 
-func postMessage(url string, webhookMessage *WebhookMessage) error {
+func postMessage(url string, webhookMessage *CustomWebhookMessage) error {
 	message, err := json.Marshal(webhookMessage)
 	if err != nil {
 		return err

@@ -1,6 +1,6 @@
 <div align="center">
 
-**This is the official Kubewatch project, [originally by Bitnami](https://github.com/bitnami-labs/kubewatch/), now maintained by [Robusta.dev](https://home.robusta.dev/).**
+**This is a forked version of Kubewatch project, [originally by Bitnami](https://github.com/robusta-dev/kubewatch), maintained by [ShareChat](https://sharechat.com/).**
 
 **Feel free to open issues, raise PRs or talk with us on [Slack](https://bit.ly/robusta-slack)!**
 

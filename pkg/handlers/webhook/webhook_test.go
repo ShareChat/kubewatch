@@ -44,3 +44,28 @@ func TestWebhookInit(t *testing.T) {
 		}
 	}
 }
+func TestWebhookInitSuccess(t *testing.T) {
+	// Create a Webhook for testing
+	webhook := &Webhook{
+		URL: "http://example.com",
+	}
+
+	// Run the function to test
+	err := webhook.Init()
+
+	// Check that the function does not return an error
+	if err != nil {
+		t.Errorf("Expected no error, got '%s'", err)
+	}
+
+	// Check that the Webhook is correctly initialized
+	// This will depend on what the Init function is supposed to do
+	// Here are some examples:
+	if webhook.URL == "" {
+		t.Errorf("Expected URL to be set, got '%s'", webhook.URL)
+	}
+	if webhook.Secret == "" {
+		t.Errorf("Expected Secret to be set, got '%s'", webhook.Secret)
+	}
+	// Add more checks as needed
+}
