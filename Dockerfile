@@ -10,9 +10,7 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/reposit
 # These are needed for running filebeat
 RUN apk add --no-cache curl libc6-compat
 
-FROM cgr.dev/chainguard/static:latest-glibc
-
-COPY --from=builder /kubewatch /bin/kubewatch
+COPY /kubewatch /bin/kubewatch
 
 ENV KW_CONFIG=/opt/bitnami/kubewatch
 
