@@ -15,7 +15,7 @@ spec:
       - name: dind-storage
         mountPath: /var/lib/docker
   - name: builder
-    image: asia.gcr.io/sharechat-production/jenkins-builder-infra-production
+    image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.18
     command:
     - sleep
     - infinity
