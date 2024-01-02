@@ -1,13 +1,10 @@
 FROM golang AS builder
 MAINTAINER "Cuong Manh Le <cuong.manhle.vn@gmail.com>"
 
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean && \
-    apt-get update && \
-    apt-get upgrade && \
+RUN apt-get update && \
     dpkg --add-architecture arm64 &&\
     apt-get install -y --no-install-recommends build-essential && \
+    apt-get clean && \
     mkdir -p "$GOPATH/src/github.com/bitnami-labs/kubewatch"
 
 ADD . "$GOPATH/src/github.com/bitnami-labs/kubewatch"
