@@ -57,7 +57,10 @@ spec:
         DOCKER_REPO = "asia.gcr.io/sharechat-production/sharechat/kubewatch"
       }
       when {
-        branch 'master'
+        anyOf {
+                  branch 'main'
+                  branch 'custom_k8s_events_for_webhook_int'
+        }
       }
       steps {
         container('builder') {
