@@ -164,7 +164,6 @@ func prepareWebhookMessage(e event.Event, m *Webhook) *CustomWebhookMessage {
 	env := extractLabels(e, "environment")
 	serviceName := extractLabels(e, "service")
 	actionBy := getActionBy(kind)
-	riskLevel := getRiskLevel(kind)
 	data := extractObjectDetails(e)
 
 	return &CustomWebhookMessage{
@@ -178,7 +177,7 @@ func prepareWebhookMessage(e event.Event, m *Webhook) *CustomWebhookMessage {
 		Action:      strings.ToLower(e.Reason),
 		CreatedAt:   time.Now(),
 		ActionBy:    actionBy,
-		RiskLevel:   riskLevel,
+		RiskLevel:   e.Status,
 		Metadata:    map[string]string{},
 		Data:        *data,
 	}
