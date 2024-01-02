@@ -47,7 +47,7 @@ spec:
     stage('build') {
       steps {
         container('builder') {
-          sh "docker build -t kubewatch . "
+          sh "docker build -t kubewatch ."
         }
       }
     }
