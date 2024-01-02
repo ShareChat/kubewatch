@@ -1,8 +1,7 @@
 FROM golang AS builder
 MAINTAINER "Cuong Manh Le <cuong.manhle.vn@gmail.com>"
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential && \
+RUN apt-get install -y --no-install-recommends build-essential && \
     apt-get clean && \
     mkdir -p "$GOPATH/src/github.com/bitnami-labs/kubewatch"
 
