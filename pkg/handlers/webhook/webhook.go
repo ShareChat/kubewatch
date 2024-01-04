@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 
 	"bytes"
@@ -29,12 +30,16 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/sirupsen/logrus"
-	apps_v1 "k8s.io/api/apps/v1"
-
 	"github.com/bitnami-labs/kubewatch/config"
 	"github.com/bitnami-labs/kubewatch/pkg/event"
 	"github.com/bitnami-labs/kubewatch/pkg/utils"
+	"github.com/sirupsen/logrus"
+	apps_v1 "k8s.io/api/apps/v1"
+	autoscaling_v2 "k8s.io/api/autoscaling/v2"
+	batch_v1 "k8s.io/api/batch/v1"
+	api_v1 "k8s.io/api/core/v1"
+	networking_v1 "k8s.io/api/networking/v1"
+	rbac_v1 "k8s.io/api/rbac/v1"
 )
 
 const (
@@ -146,7 +151,10 @@ func (m *Webhook) Handle(e event.Event) {
 func objectGenerationChangeCheck(e event.Event) bool {
 	object := utils.GetObjectMetaData(e.Obj)
 	oldObject := utils.GetObjectMetaData(e.OldObj)
-	return object.Generation != oldObject.Generation
+	if object.GetGeneration() == 0 {
+		return object.GetResourceVersion() != oldObject.GetResourceVersion()
+	}
+	return object.GetGeneration() != oldObject.GetGeneration()
 }
 
 func checkMissingWebhookVars(s *Webhook) error {
@@ -195,28 +203,175 @@ type objectData struct {
 func extractObjectDetails(e event.Event) *objectData {
 	var data objectData
 
-	object, ok := e.Obj.(*apps_v1.Deployment)
-	if !ok {
-		fmt.Println("Error casting oldConfig to Deployment type")
+	var obj interface{}
+	var oldobj interface{}
+
+	switch e.Kind {
+	case "Deployment":
+		var ok bool
+		obj, ok = e.Obj.(*apps_v1.Deployment)
+		oldobj, _ = e.OldObj.(*apps_v1.Deployment)
+
+		if !ok {
+			fmt.Println("Error casting object to Deployment type")
+			return &data
+		}
+	case "Service":
+		var ok bool
+		obj, ok = e.Obj.(*api_v1.Service)
+		oldobj, _ = e.OldObj.(*api_v1.Service)
+
+		if !ok {
+			fmt.Println("Error casting object to service type")
+			return &data
+		}
+	case "Ingress":
+		var ok bool
+		obj, ok = e.Obj.(*networking_v1.Ingress)
+		oldobj, _ = e.OldObj.(*networking_v1.Ingress)
+
+		if !ok {
+			fmt.Println("Error casting object to Ingress type")
+			return &data
+		}
+	case "HorizontalPodAutoscaler":
+		fmt.Println("autoscaling")
+		var ok bool
+		obj, ok = e.Obj.(*autoscaling_v2.HorizontalPodAutoscaler)
+		oldobj, _ = e.OldObj.(*autoscaling_v2.HorizontalPodAutoscaler)
+
+		if !ok {
+			fmt.Println("Error casting object to HPA type")
+			return &data
+		}
+		fmt.Println("autoscaling")
+	case "DaemonSet":
+		var ok bool
+		obj, ok = e.Obj.(*apps_v1.DaemonSet)
+		oldobj, _ = e.OldObj.(*apps_v1.DaemonSet)
+
+		if !ok {
+			fmt.Println("Error casting object to DaemonSet type")
+			return &data
+		}
+	case "StatefulSet":
+		var ok bool
+		obj, ok = e.Obj.(*apps_v1.StatefulSet)
+		oldobj, _ = e.OldObj.(*apps_v1.StatefulSet)
+
+		if !ok {
+			fmt.Println("Error casting object to StatefulSet type")
+			return &data
+		}
+	case "Job":
+		var ok bool
+		obj, ok = e.Obj.(*batch_v1.Job)
+		oldobj, _ = e.OldObj.(*batch_v1.Job)
+
+		if !ok {
+			fmt.Println("Error casting object to Job type")
+			return &data
+		}
+	case "PersistentVolume":
+		var ok bool
+		obj, ok = e.Obj.(*api_v1.PersistentVolume)
+		oldobj, _ = e.OldObj.(*api_v1.PersistentVolume)
+
+		if !ok {
+			fmt.Println("Error casting object to PersistentVolume type")
+			return &data
+		}
+	case "Secret":
+		var ok bool
+		obj, ok = e.Obj.(*api_v1.Secret)
+		oldobj, _ = e.OldObj.(*api_v1.Secret)
+
+		if !ok {
+			fmt.Println("Error casting object to Secret type")
+			return &data
+		}
+	case "ConfigMap":
+		var ok bool
+		obj, ok = e.Obj.(*api_v1.ConfigMap)
+		oldobj, _ = e.OldObj.(*api_v1.ConfigMap)
+
+		if !ok {
+			fmt.Println("Error casting object to ConfigMap type")
+			return &data
+		}
+	case "ServiceAccount":
+		var ok bool
+		obj, ok = e.Obj.(*api_v1.ServiceAccount)
+		oldobj, _ = e.OldObj.(*api_v1.ServiceAccount)
+
+		if !ok {
+			fmt.Println("Error casting object to ServiceAccount type")
+			return &data
+		}
+	case "ClusterRole":
+		var ok bool
+		obj, ok = e.Obj.(*rbac_v1.ClusterRole)
+		oldobj, _ = e.OldObj.(*rbac_v1.ClusterRole)
+
+		if !ok {
+			fmt.Println("Error casting object to ClusterRole type")
+			return &data
+		}
+	case "ClusterRoleBinding":
+		var ok bool
+		obj, ok = e.Obj.(*rbac_v1.ClusterRoleBinding)
+		oldobj, _ = e.OldObj.(*rbac_v1.ClusterRoleBinding)
+
+		if !ok {
+			fmt.Println("Error casting object to ClusterRoleBinding type")
+			return &data
+		}
+	default:
+		fmt.Println("Unhandled object kind:", e.Kind)
 		return &data
 	}
-	oldObj := e.OldObj.(*apps_v1.Deployment)
-	if !ok {
-		fmt.Println("Error casting currentConfig to Deployment type")
-		return &data
-	}
 
-	data.CurrentConfigName = object.GetName()
-	data.CurrentConfigNamespace = object.GetNamespace()
-	data.CurrentConfigSpec = object.Spec
-
-	data.OldConfigName = oldObj.GetName()
-	data.OldConfigNamespace = oldObj.GetNamespace()
-	data.OldConfigSpec = oldObj.Spec
-
+	data.extractDetails(obj, &data.CurrentConfigName, &data.CurrentConfigNamespace, &data.CurrentConfigSpec, e.Kind)
+	data.extractDetails(oldobj, &data.OldConfigName, &data.OldConfigNamespace, &data.OldConfigSpec, e.Kind)
 	return &data
 }
+func (data *objectData) extractDetails(obj interface{}, name *string, namespace *string, spec *interface{}, kind string) {
+	val := reflect.ValueOf(obj)
 
+	switch val.Kind() {
+	case reflect.Ptr:
+		val = val.Elem()
+	}
+
+	nameField := val.FieldByName("Name")
+	if nameField.IsValid() {
+		*name = nameField.String()
+	}
+
+	namespaceField := val.FieldByName("Namespace")
+	if namespaceField.IsValid() {
+		*namespace = namespaceField.String()
+	}
+	if kind == "ClusterRole" {
+		specField := val.FieldByName("Rules")
+		if specField.IsValid() {
+			*spec = specField.Interface()
+		}
+	}
+	if kind == "ClusterRoleBinding" {
+		subjectsField := val.FieldByName("Subjects")
+		roleRefField := val.FieldByName("RoleRef")
+		if subjectsField.IsValid() && roleRefField.IsValid() {
+			combinedSpec := fmt.Sprintf("Rules: %v, RoleRef: %v", subjectsField.Interface(), roleRefField.Interface())
+			*spec = combinedSpec
+		}
+	} else {
+		specField := val.FieldByName("Spec")
+		if specField.IsValid() {
+			*spec = specField.Interface()
+		}
+	}
+}
 func extractLabels(e event.Event, label string) string {
 	eventLabels := utils.GetObjectMetaData(e.Obj)
 	if eventLabels.Labels != nil {

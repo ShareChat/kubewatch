@@ -5,12 +5,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 	apps_v1 "k8s.io/api/apps/v1"
+	autoscaling_v2 "k8s.io/api/autoscaling/v2"
 	batch_v1 "k8s.io/api/batch/v1"
 	api_v1 "k8s.io/api/core/v1"
+	events_v1 "k8s.io/api/events/v1"
 	ext_v1beta1 "k8s.io/api/extensions/v1beta1"
 	networking_v1 "k8s.io/api/networking/v1"
 	rbac_v1 "k8s.io/api/rbac/v1"
-	events_v1 "k8s.io/api/events/v1"
 	rbac_v1beta1 "k8s.io/api/rbac/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -91,6 +92,8 @@ func GetObjectMetaData(obj interface{}) (objectMeta meta_v1.ObjectMeta) {
 	case *rbac_v1.ClusterRole:
 		objectMeta = object.ObjectMeta
 	case *rbac_v1beta1.ClusterRoleBinding:
+		objectMeta = object.ObjectMeta
+	case *autoscaling_v2.HorizontalPodAutoscaler:
 		objectMeta = object.ObjectMeta
 	case *rbac_v1.ClusterRoleBinding:
 		objectMeta = object.ObjectMeta
