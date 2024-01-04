@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine AS builder 
+FROM golang:1.21-alpine AS builder 
 RUN apk update && apk upgrade && apk add --no-cache git procps bash
 RUN mkdir -p "$GOPATH/src/github.com/bitnami-labs/kubewatch"
 
