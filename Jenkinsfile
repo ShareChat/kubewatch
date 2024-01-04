@@ -65,6 +65,7 @@ spec:
       steps {
         container('builder') {
           sh "docker tag kubewatch:latest $DOCKER_REPO:$GIT_COMMIT"
+          sh "docker tag kubewatch:latest $DOCKER_REPO:v1"
           sh "docker push $DOCKER_REPO:$GIT_COMMIT"
           sh "docker push $DOCKER_REPO:v1"
         }
