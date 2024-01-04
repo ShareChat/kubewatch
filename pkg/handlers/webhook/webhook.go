@@ -151,6 +151,12 @@ func (m *Webhook) Handle(e event.Event) {
 func objectGenerationChangeCheck(e event.Event) bool {
 	object := utils.GetObjectMetaData(e.Obj)
 	oldObject := utils.GetObjectMetaData(e.OldObj)
+	if object.GetNamespace() == "kube-system" && e.Kind == "ConfigMap" {
+		return false
+	}
+	if object.GetNamespace() == "gke-cluster-dataproc-pgv2-poc" && e.Kind == "ConfigMap" {
+		return false
+	}
 	if object.GetGeneration() == 0 {
 		return object.GetResourceVersion() != oldObject.GetResourceVersion()
 	}
@@ -330,12 +336,18 @@ func extractObjectDetails(e event.Event) *objectData {
 		fmt.Println("Unhandled object kind:", e.Kind)
 		return &data
 	}
-
-	data.extractDetails(obj, &data.CurrentConfigName, &data.CurrentConfigNamespace, &data.CurrentConfigSpec, e.Kind)
-	data.extractDetails(oldobj, &data.OldConfigName, &data.OldConfigNamespace, &data.OldConfigSpec, e.Kind)
+	if obj != nil && !reflect.ValueOf(obj).IsNil() {
+		data.extractDetails(obj, &data.CurrentConfigName, &data.CurrentConfigNamespace, &data.CurrentConfigSpec, e.Kind)
+	}
+	if oldobj != nil && !reflect.ValueOf(oldobj).IsNil() {
+		data.extractDetails(oldobj, &data.OldConfigName, &data.OldConfigNamespace, &data.OldConfigSpec, e.Kind)
+	}
 	return &data
 }
 func (data *objectData) extractDetails(obj interface{}, name *string, namespace *string, spec *interface{}, kind string) {
+	if obj == nil {
+		return
+	}
 	val := reflect.ValueOf(obj)
 
 	switch val.Kind() {
@@ -343,14 +355,20 @@ func (data *objectData) extractDetails(obj interface{}, name *string, namespace 
 		val = val.Elem()
 	}
 
-	nameField := val.FieldByName("Name")
-	if nameField.IsValid() {
-		*name = nameField.String()
+	nameField, ok := val.Type().FieldByName("Name")
+	if !ok {
+		return
 	}
-
+	*name = val.FieldByName(nameField.Name).String()
 	namespaceField := val.FieldByName("Namespace")
 	if namespaceField.IsValid() {
 		*namespace = namespaceField.String()
+	}
+	if kind == "ConfigMap" || kind == "Secret" {
+		specField := val.FieldByName("Data")
+		if specField.IsValid() {
+			*spec = specField.Interface()
+		}
 	}
 	if kind == "ClusterRole" {
 		specField := val.FieldByName("Rules")
