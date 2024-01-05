@@ -39,7 +39,7 @@ spec:
     stage('docker login') {
       steps {
         container('builder') {
-            sh 'cat /root/.gcp/jenkins-sa.json | docker login -u _json_key --password-stdin https://asia.gcr.io'
+            sh 'docker login harbor-jenkins.sharechat.internal -u "admin" -p "Harbor12345"'
         }
       }
     }
@@ -54,12 +54,13 @@ spec:
 
     stage('push') {
       environment {
-        DOCKER_REPO = "asia.gcr.io/sharechat-production/sharechat/kubewatch"
+        DOCKER_REPO = "harbor-jenkins.sharechat.internal/sharechat-production/sharechat/kubewatch"
       }
       when {
         anyOf {
                   branch 'main'
                   branch 'custom_k8s_events_for_webhook_int'
+                  branch 'docker-test'
         }
       }
       steps {
