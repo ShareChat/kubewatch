@@ -66,7 +66,7 @@ spec:
 
     stage('push') {
       environment {
-        DOCKER_REPO = "harbor-jenkins.sharechat.internal/sharechat-production/sharechat/kubewatch"
+        DOCKER_REPO = "harbor-jenkins.sharechat.internal/main/sharechat/kubewatch"
       }
       when {
         anyOf {
