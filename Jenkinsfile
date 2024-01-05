@@ -7,30 +7,42 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: dind
-    image: docker:18.05-dind
-    securityContext:
-      privileged: true
-    volumeMounts:
-      - name: dind-storage
-        mountPath: /var/lib/docker
-  - name: builder
-    image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.18
-    command:
-    - sleep
-    - infinity
-    env:
-    - name: DOCKER_HOST
-      value: tcp://localhost:2375
-    volumeMounts:
-      - name: jenkins-sa
-        mountPath: /root/.gcp/
+    - name: dind
+      image: docker:18.05-dind
+      command: ["/bin/sh", "-c"]
+      args:
+        - |
+          mkdir -p /etc/docker && \
+          cp /tmp/docker-config/daemon.json /etc/docker/daemon.json && \
+          dockerd-entrypoint.sh &
+          tail -f /dev/null # Keep the container running
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: dind-storage
+          mountPath: /var/lib/docker
+        - name: docker-config-volume
+          mountPath: /tmp/docker-config
+    - name: builder
+      image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.18
+      command:
+        - sleep
+        - infinity
+      env:
+        - name: DOCKER_HOST
+          value: tcp://localhost:2375
+      volumeMounts:
+        - name: jenkins-sa
+          mountPath: /root/.gcp/
   volumes:
     - name: dind-storage
       emptyDir: {}
     - name: jenkins-sa
       secret:
         secretName: jenkins-sa
+    - name: docker-config-volume
+      configMap:
+        name: docker-config
 """
     }
   }
