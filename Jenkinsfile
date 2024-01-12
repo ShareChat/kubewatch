@@ -51,7 +51,7 @@ spec:
     stage('docker login') {
       steps {
         container('builder') {
-            sh 'docker login harbor-core.sharechat-registry-mum.svc.cluster.local -u "admin" -p "Harbor12345"'
+            sh 'docker login sc-mum-armory.platform.internal -u "robot$jenkins" -p "Jzp9xPOwAOuUcJrfA3JtFER1WMJMGCxJ"'
         }
       }
     }
@@ -66,7 +66,7 @@ spec:
 
     stage('push') {
       environment {
-        DOCKER_REPO = "harbor-core.sharechat-registry-mum.svc.cluster.local/main/sharechat/kubewatch"
+        DOCKER_REPO = "sc-mum-armory.platform.internal/sharechat/kubewatch"
       }
       when {
         anyOf {
