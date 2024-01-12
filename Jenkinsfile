@@ -51,10 +51,11 @@ spec:
     stage('docker login') {
       environment{
         user=credentials('armory-user')
+        password=credentials('armory-password')
       }
       steps {
         container('builder') {
-            sh 'docker login sc-mum-armory.platform.internal -u $user -p "Jzp9xPOwAOuUcJrfA3JtFER1WMJMGCxJ"'
+            sh 'docker login sc-mum-armory.platform.internal -u $user -p $password'
         }
       }
     }
