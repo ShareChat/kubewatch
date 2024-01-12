@@ -49,9 +49,12 @@ spec:
 
   stages {
     stage('docker login') {
+      environment{
+        user=credentials('armory-user')
+      }
       steps {
         container('builder') {
-            sh 'docker login sc-mum-armory.platform.internal -u robot\$jenkins -p "Jzp9xPOwAOuUcJrfA3JtFER1WMJMGCxJ"'
+            sh 'docker login sc-mum-armory.platform.internal -u $user -p "Jzp9xPOwAOuUcJrfA3JtFER1WMJMGCxJ"'
         }
       }
     }
