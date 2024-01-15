@@ -24,7 +24,7 @@ spec:
         - name: docker-config-volume
           mountPath: /tmp/docker-config
     - name: builder
-      image: asia.gcr.io/moj-prod/armory-tester
+      image: asia.gcr.io/moj-prod/armory-tester:v1
       command:
         - sleep
         - infinity
@@ -64,7 +64,7 @@ spec:
       }
       steps {
         container('builder') {
-            sh 'armory.sh build'
+            sh 'armory build'
         }
       }
     }
@@ -82,7 +82,7 @@ spec:
       }
       steps {
         container('builder') {
-          sh "armory.sh push"
+          sh "armory push"
         }
       }
     }
