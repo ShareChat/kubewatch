@@ -24,7 +24,7 @@ spec:
         - name: docker-config-volume
           mountPath: /tmp/docker-config
     - name: builder
-      image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.18
+      image: asia.gcr.io/moj-prod/armory-test
       command:
         - sleep
         - infinity
@@ -48,22 +48,17 @@ spec:
   }
 
   stages {
-    stage('docker login') {
+    stage('docker build') {
       environment{
+        entity="sharechat"
+        region="mumbai"
+        tag="kubewatch"
         user=credentials('armory-user')
         password=credentials('armory-password')
       }
       steps {
         container('builder') {
-            sh 'docker login sc-mum-armory.platform.internal -u $user -p $password'
-        }
-      }
-    }
-
-    stage('build') {
-      steps {
-        container('builder') {
-          sh "docker build -t kubewatch ."
+            sh 'armory build'
         }
       }
     }
@@ -81,10 +76,7 @@ spec:
       }
       steps {
         container('builder') {
-          sh "docker tag kubewatch:latest $DOCKER_REPO:$GIT_COMMIT"
-          sh "docker tag kubewatch:latest $DOCKER_REPO:v1"
-          sh "docker push $DOCKER_REPO:$GIT_COMMIT"
-          sh "docker push $DOCKER_REPO:v1"
+          sh "armory push"
         }
       }
     }
