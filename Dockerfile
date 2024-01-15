@@ -14,5 +14,13 @@ RUN cd "$GOPATH/src/github.com/bitnami-labs/kubewatch" && \
     cp /kubewatch /bin/kubewatch
 
 ENV KW_CONFIG=/opt/bitnami/kubewatch
+ARG GITHUB_TOKEN
+
+RUN git config \
+    --global \
+    url."https://${GITHUB_TOKEN}@github.com".insteadOf \
+    "https://github.com"
+ARG DEPLOYMENT_ID
+ENV DEPLOYMENT_ID ${DEPLOYMENT_ID}
 
 ENTRYPOINT ["/bin/kubewatch"]
