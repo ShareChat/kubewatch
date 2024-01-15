@@ -48,7 +48,7 @@ spec:
   }
   environment{
     entity="sharechat"
-    region="singapore"
+    region="mumbai"
     tag="kubewatch"
     user=credentials('armory-user')
     password=credentials('armory-password')
@@ -57,7 +57,7 @@ spec:
     stage('docker build') {
       environment{
         entity="sharechat"
-        region="singapore"
+        region="mumbai"
         tag="kubewatch"
         user=credentials('armory-user')
         password=credentials('armory-password')
