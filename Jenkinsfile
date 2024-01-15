@@ -58,7 +58,7 @@ spec:
       }
       steps {
         container('builder') {
-            sh 'armory build'
+            sh 'armory.sh build'
         }
       }
     }
@@ -76,7 +76,7 @@ spec:
       }
       steps {
         container('builder') {
-          sh "armory push"
+          sh "armory.sh push"
         }
       }
     }
