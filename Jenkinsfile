@@ -24,7 +24,7 @@ spec:
         - name: docker-config-volume
           mountPath: /tmp/docker-config
     - name: builder
-      image: asia.gcr.io/moj-prod/armory-test
+      image: asia.gcr.io/moj-prod/armory-tester
       command:
         - sleep
         - infinity
