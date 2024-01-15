@@ -46,7 +46,13 @@ spec:
 """
     }
   }
-
+ environment{
+        entity="sharechat"
+        region="mumbai"
+        tag="kubewatch"
+        user=credentials('armory-user')
+        password=credentials('armory-password')
+      }
   stages {
     stage('docker build') {
       environment{
