@@ -8,21 +8,12 @@ kind: Pod
 spec:
   containers:
     - name: dind
-      image: docker:18.05-dind
-      command: ["/bin/sh", "-c"]
-      args:
-        - |
-          mkdir -p /etc/docker && \
-          cp /tmp/docker-config/daemon.json /etc/docker/daemon.json && \
-          dockerd-entrypoint.sh &
-          tail -f /dev/null # Keep the container running
+      image: asia.gcr.io/sharechat-production/dnd:v1
       securityContext:
         privileged: true
       volumeMounts:
         - name: dind-storage
           mountPath: /var/lib/docker
-        - name: docker-config-volume
-          mountPath: /tmp/docker-config
     - name: builder
       image: asia.gcr.io/moj-prod/armory-tester:v5
       command:
@@ -40,9 +31,6 @@ spec:
     - name: jenkins-sa
       secret:
         secretName: jenkins-sa
-    - name: docker-config-volume
-      configMap:
-        name: docker-config
 """
     }
   }
