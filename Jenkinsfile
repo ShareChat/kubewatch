@@ -49,7 +49,7 @@ spec:
   environment{
     entity="sharechat"
     region="mumbai"
-    tag="kubewatch"
+    app="kubewatch"
     user=credentials('armory-user')
     password=credentials('armory-password')
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
