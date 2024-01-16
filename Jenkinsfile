@@ -54,7 +54,6 @@ spec:
     password=credentials('armory-password')
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
-    imagetag="v55,v1,v22"
   }
   stages {
     stage('docker build') {
