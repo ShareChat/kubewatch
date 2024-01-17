@@ -15,7 +15,7 @@ spec:
         - name: dind-storage
           mountPath: /var/lib/docker
     - name: builder
-      image: asia.gcr.io/moj-prod/armory-tester:v6
+      image: asia.gcr.io/moj-prod/armory-tester:v7
       command:
         - sleep
         - infinity
@@ -36,13 +36,13 @@ spec:
   }
   environment{
     entity="sharechat"
-    region="mumbai,singapore,us"
+    region="mumbai,singapore"
     app="kubewatch"
     user=credentials('armory-user')
     password=credentials('armory-password')
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
-    imagetag="v1,v2"
+    imagetag="v1"
   }
   stages {
     stage('docker build') {
