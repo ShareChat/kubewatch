@@ -15,7 +15,7 @@ spec:
         - name: dind-storage
           mountPath: /var/lib/docker
     - name: builder
-      image: asia.gcr.io/moj-prod/armory-tester:v7
+      image: asia.gcr.io/sharechat-production/jenkins-builder-infra-production-golang-1.19.5-armory
       command:
         - sleep
         - infinity
