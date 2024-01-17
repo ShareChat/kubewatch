@@ -36,12 +36,13 @@ spec:
   }
   environment{
     entity="sharechat"
-    region="mumbai"
+    region="mumbai,singapore,us"
     app="kubewatch"
     user=credentials('armory-user')
     password=credentials('armory-password')
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
+    imagetag="v1,v2"
   }
   stages {
     stage('docker build') {
