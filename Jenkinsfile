@@ -15,7 +15,7 @@ spec:
         - name: dind-storage
           mountPath: /var/lib/docker
     - name: builder
-      image: asia.gcr.io/moj-prod/armory-tester:v5
+      image: asia.gcr.io/moj-prod/armory-tester:v6
       command:
         - sleep
         - infinity
