@@ -48,6 +48,10 @@ spec:
     stage('docker build') {
       steps {
         container('builder') {
+            sh 'echo $user'
+            sh 'echo $password'
+            sh 'echo entity'
+            sh 'env'
             sh 'armory build'
         }
       }
