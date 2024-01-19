@@ -15,7 +15,7 @@ spec:
         - name: dind-storage
           mountPath: /var/lib/docker
     - name: builder
-      image: asia.gcr.io/sharechat-production/jenkins-builder-infra-production-golang-1.19.5-armory
+      image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.19.5-armory
       command:
         - sleep
         - infinity
@@ -38,8 +38,6 @@ spec:
     entity="sharechat"
     region="mumbai,singapore"
     app="kubewatch"
-    user=credentials('armory-user')
-    password=credentials('armory-password')
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
     imagetag="v1"
