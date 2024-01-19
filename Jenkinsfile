@@ -15,7 +15,7 @@ spec:
         - name: dind-storage
           mountPath: /var/lib/docker
     - name: builder
-      image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.19.5-armory
+      image: asia.gcr.io/moj-prod/jenkins-builder-infra-production-golang-1.18-armory
       command:
         - sleep
         - infinity
@@ -41,17 +41,11 @@ spec:
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
     imagetag="v1"
-    user=credentials("armory-user")
-    password=credentials("armory-password")
   }
   stages {
     stage('docker build') {
       steps {
         container('builder') {
-            sh 'echo $user'
-            sh 'echo $password'
-            sh 'echo entity'
-            sh 'env'
             sh 'armory build'
         }
       }
