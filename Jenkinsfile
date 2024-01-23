@@ -35,8 +35,8 @@ spec:
     }
   }
   environment{
-    entity="sharechat"
-    region="mumbai,singapore"
+    sc_regions="mumbai,singapore"
+    moj_regions="us,singapore"
     app="kubewatch"
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
