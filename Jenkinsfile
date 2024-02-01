@@ -8,7 +8,7 @@ kind: Pod
 spec:
   containers:
     - name: dind
-      image: asia.gcr.io/sharechat-production/dnd:v1
+      image: sc-mum-armory.platform.internal/devops/dnd:v2
       securityContext:
         privileged: true
       volumeMounts:
