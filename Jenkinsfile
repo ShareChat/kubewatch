@@ -41,6 +41,7 @@ spec:
     buildarg_DEPLOYMENT_ID="feed-service-$GIT_COMMIT"
     buildarg_GITHUB_TOKEN=credentials('github-access')
     imagetag="v1"
+    extraargs="--cache-from sc-mum-armory.platform.internal/sharechat/kubewatch:latest"
   }
   stages {
     stage('docker build') {
