@@ -1,0 +1,1 @@
+FROM asia.gcr.io/sharechat-production/custom-metrics:1.0.0
