@@ -44,7 +44,7 @@ spec:
     stage('docker build') {
       steps {
         container('builder') {
-            sh 'armory build -f Dockerfile-test'
+            sh 'armory build -f Docker-test'
         }
       }
     }
