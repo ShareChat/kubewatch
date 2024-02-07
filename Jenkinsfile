@@ -41,6 +41,13 @@ spec:
     imagetag="v1"
   }
   stages {
+    stage('docker login') {
+      steps {
+        container('builder') {
+            sh 'cat /root/.gcp/jenkins-sa.json | docker login -u _json_key --password-stdin https://asia.gcr.io'
+        }
+      }
+    }
     stage('docker build') {
       steps {
         container('builder') {
