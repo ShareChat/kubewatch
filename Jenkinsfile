@@ -38,7 +38,7 @@ spec:
     sc_regions="mumbai,singapore,us"
     moj_regions="us,singapore,mumbai"
     app="thunderbolt"
-    imagetag="v1"
+    imagetags="v1"
   }
   stages {
     stage('docker login') {
