@@ -35,9 +35,8 @@ spec:
     }
   }
   environment{
-    sc_regions="mumbai,singapore,us"
-    moj_regions="us,singapore,mumbai"
-    app="thunderbolt"
+    sc_regions="mumbai"
+    app="audit-service"
     imagetags="v1"
   }
   stages {
