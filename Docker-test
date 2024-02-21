@@ -1,1 +1,1 @@
-FROM asia.gcr.io/sharechat-production/custom-metrics:1.0.0
+FROM asia.gcr.io/sharechat-production/mt-images/sharechat/audit-service:b5d5bc1f48db0ef15fcfd85bde5fa8fbfa171fa3
