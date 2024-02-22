@@ -35,9 +35,9 @@ spec:
     }
   }
   environment{
-    sc_regions="mumbai"
-    app="audit-service"
-    imagetags="v1"
+    moj_regions="singapore"
+    app="envoy"
+    imagetags="v2"
   }
   stages {
     stage('docker login') {
