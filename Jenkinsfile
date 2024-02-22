@@ -1,7 +1,7 @@
 pipeline {
   agent {
     kubernetes {
-      label 'kubewatch'
+      label "kubewatch-${UUID.randomUUID()}"
       yaml """
 apiVersion: v1
 kind: Pod
