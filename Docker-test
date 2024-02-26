@@ -1,1 +1,1 @@
-FROM asia.gcr.io/moj-prod/envoy:v2
+FROM asia.gcr.io/sharechat-production/consul-eds:v1.2.3
