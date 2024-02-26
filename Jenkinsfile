@@ -35,7 +35,7 @@ spec:
     }
   }
   environment{
-    sc_regions="mumbai"
+    moj_regions="singapore"
     app="consul-eds"
     imagetags="v1.2.3"
   }
