@@ -35,9 +35,9 @@ spec:
     }
   }
   environment{
-    moj_regions="singapore"
-    app="envoy"
-    imagetags="v2"
+    sc_regions="mumbai"
+    app="consul-eds"
+    imagetags="v1.2.3"
   }
   stages {
     stage('docker login') {
