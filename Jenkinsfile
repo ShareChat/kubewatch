@@ -18,12 +18,10 @@ spec:
         tcpSocket:
           port: 2375
         initialDelaySeconds: 30
-        periodSeconds: 10
       livenessProbe:
         tcpSocket:
           port: 2375
         initialDelaySeconds: 30
-        periodSeconds: 20
     - name: builder
       image: sc-mum-armory.platform.internal/devops/builder-image-golang-1.19.5-armory
       command:
