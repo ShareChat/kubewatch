@@ -22,6 +22,8 @@ spec:
       env:
         - name: DOCKER_HOST
           value: tcp://localhost:2375
+        - name: DOCKER_BUILDKIT
+          value: "0"
       volumeMounts:
         - name: jenkins-sa
           mountPath: /root/.gcp/
