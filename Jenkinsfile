@@ -8,7 +8,7 @@ kind: Pod
 spec:
   containers:
     - name: dind
-      image: sc-mum-armory.platform.internal/devops/dnd:v2
+      image: sc-mum-armory.platform.internal/devops/dind:v2
       securityContext:
         privileged: true
       volumeMounts:
