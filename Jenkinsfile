@@ -50,6 +50,8 @@ spec:
     stage('docker build') {
       steps {
         container('builder') {
+            sh 'docker buildx build --tag kwatch --platform linux/arm/v7,linux/arm64/v8,linux/amd64'
+            sh 'docker tag kwatch sc-mum-armory.platform.internal/sharechat/kwatch'
             sh 'armory build -f Docker-test'
         }
       }
@@ -64,6 +66,7 @@ spec:
       }
       steps {
         container('builder') {
+          sh 'docker push sc-mum-armory.platform.internal/sharechat/kwatch'
           sh "armory push"
         }
       }
