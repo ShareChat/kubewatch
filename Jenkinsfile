@@ -65,7 +65,8 @@ spec:
     stage('docker build') {
       steps {
         container('builder') {
-            sh 'docker buildx build --tag kwatch --platform linux/arm/v7,linux/arm64/v8,linux/amd64 .'
+            sh 'docker buildx create --name container --driver=docker-container'
+            sh 'docker buildx build --tag kwatch --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --builder container .'
             sh 'docker tag kwatch sc-mum-armory.platform.internal/sharechat/kwatch'
             sh 'armory build -f Docker-test'
         }
