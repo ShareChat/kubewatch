@@ -11,6 +11,11 @@ spec:
       image: sc-mum-armory.platform.internal/devops/dind:v2
       securityContext:
         privileged: true
+      env:
+      - name: DOCKER_HOST
+        value: tcp://localhost:2375
+      - name: DOCKER_TLS_CERTDIR
+        value: ""
       volumeMounts:
         - name: dind-storage
           mountPath: /var/lib/docker
