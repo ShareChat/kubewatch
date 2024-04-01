@@ -50,9 +50,6 @@ spec:
     }
   }
   environment{
-    moj_regions="singapore"
-    app="consul-eds"
-    imagetags="v1.2.3"
     harboruser=credentials('armory-user')
     harborpassword=credentials('armory-password')
   }
