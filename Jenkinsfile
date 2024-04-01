@@ -53,6 +53,8 @@ spec:
     moj_regions="singapore"
     app="consul-eds"
     imagetags="v1.2.3"
+    harboruser=credentials('armory-user')
+    harborpassword=credentials('armory-password')
   }
   stages {
     stage('docker login') {
@@ -65,8 +67,7 @@ spec:
     stage('docker build') {
       steps {
         container('builder') {
-            sh 'armory build'
-            sh "armory push"
+            sh 'docker login sc-mum-armory.platform.internal -u $harboruser -p $harborpassword'
             sh 'docker buildx create --name container --config buildx.toml'
             sh 'docker buildx build --tag sc-mum-armory.platform.internal/sharechat/kwatch --platform linux/arm64,linux/amd64 --builder container --push .'
         }
