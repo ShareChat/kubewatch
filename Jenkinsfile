@@ -64,7 +64,9 @@ spec:
     stage('docker build') {
       steps {
         container('builder') {
-            sh 'armory build -f Docker-test'
+            sh 'docker login sc-mum-armory.platform.internal -u $harboruser -p $harborpassword'
+            sh 'docker buildx create --name container --config buildx.toml'
+            sh 'docker buildx build --tag sc-mum-armory.platform.internal/sharechat/kwatch --platform linux/arm64,linux/amd64 --builder container --push .'
         }
       }
     }
