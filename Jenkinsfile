@@ -28,7 +28,7 @@ spec:
           port: 2375
         initialDelaySeconds: 30
     - name: builder
-      image: sc-mum-armory.platform.internal/devops/builder-image-golang-1.19.5-armory
+      image: sc-mum-armory.platform.internal/devops/builder-image-golang-1.18-armory
       command:
         - sleep
         - infinity
@@ -50,23 +50,16 @@ spec:
     }
   }
   environment{
-    harboruser=credentials('armory-user')
-    harborpassword=credentials('armory-password')
+    clouds="gcp,oci"
+    moj_regions="singapore"
+    app="kubewatch"
+    imagetags="v1.2.3"
   }
   stages {
-    stage('docker login') {
-      steps {
-        container('builder') {
-            sh 'cat /root/.gcp/jenkins-sa.json | docker login -u _json_key --password-stdin https://asia.gcr.io'
-        }
-      }
-    }
     stage('docker build') {
       steps {
         container('builder') {
-            sh 'docker login sc-mum-armory.platform.internal -u $harboruser -p $harborpassword'
-            sh 'docker buildx create --name container --config buildx.toml'
-            sh 'docker buildx build --tag sc-mum-armory.platform.internal/sharechat/kwatch --platform linux/arm64,linux/amd64 --builder container --push .'
+            sh 'armory build'
         }
       }
     }
