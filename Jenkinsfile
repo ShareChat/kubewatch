@@ -51,7 +51,7 @@ spec:
   }
   environment{
     clouds="gcp,oci"
-    moj_regions="singapore"
+    sc_regions="singapore"
     app="kubewatch"
     imagetags="v1.2.3"
   }
