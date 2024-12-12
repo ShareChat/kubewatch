@@ -51,7 +51,7 @@ spec:
   }
   environment{
     clouds="gcp,oci"
-    sc_regions="mumbai"
+    moj_regions="mumbai"
     app="fluent-bit"
     imagetags="v1.8"
   }
