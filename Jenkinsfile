@@ -52,8 +52,8 @@ spec:
   environment{
     clouds="gcp,oci"
     sc_regions="mumbai"
-    app="kubewatch"
-    imagetags="v1.2.3"
+    app="fluent-bit"
+    imagetags="v1.8"
   }
   stages {
     stage('docker build') {
